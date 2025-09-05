@@ -1,0 +1,39 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: user_service
+          uri: lb://user-service  # Logical name for load balancing
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+
+    # Manually define the list of servers for 'user-service'
+    loadbalancer:
+      configurations:
+        - reactor-http-pool
+      ribbon:
+        enabled: false  # Disable Ribbon if present
+    # Define static instances of 'user-service'
+    discovery:
+      client:
+        simple:
+          instances:
+            user-service:
+              - uri: http://localhost:8081
+                metadata:
+                  weight: 1
+              - uri: http://localhost:8082
+                metadata:
+                  weight: 1
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
